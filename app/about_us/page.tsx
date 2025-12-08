@@ -5,10 +5,7 @@ export default function AboutUsPage() {
   return (
     <main className="bg-stone-50 text-stone-800">
       {/* Hero */}
-      <section
-        className="text-white"
-        style={{ background: "linear-gradient(90deg, #15803D 0%, #14532D 100%)" }}
-      >
+      <section className="bg-[#15803d] text-white">
         <div className="mx-auto max-w-5xl px-4 py-10 text-center">
           <h1 className="text-2xl font-semibold">About Sustainable Future Hub</h1>
           <p className="mt-3 text-sm text-white/85">
