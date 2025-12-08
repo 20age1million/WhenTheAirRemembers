@@ -1,0 +1,46 @@
+# Multi-stage build for Next.js static export served by NGINX
+
+########## 1) Build stage (Next.js export) ###################################
+FROM node:20-alpine AS build
+WORKDIR /app
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Copy manifests first for better cache use
+COPY package*.json ./
+
+# Install dependencies (BuildKit cache enabled if available)
+RUN --mount=type=cache,target=/root/.npm npm ci --prefer-offline
+
+# Copy the rest of the source
+COPY . .
+
+# Build and export static site to /app/out
+# Ensure package.json has scripts:
+#   "build": "next build"
+#   "export": "next export"
+RUN npm run build && npm run export
+
+
+########## 2) Runtime stage (NGINX static) ###################################
+FROM nginx:1.27-alpine
+
+# Provide nginx config (expects /healthz route). Replace if you have your own.
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy exported static files
+COPY --from=build /app/out /usr/share/nginx/html
+
+# Optionally run as non-root:
+# USER 101:101
+
+EXPOSE 80
+
+# Simple health check hitting /healthz (configure in nginx.conf)
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD wget -qO- http://localhost/healthz || exit 1
+
+# Notes:
+# - If you keep dynamic Next.js features, use `next start` instead of export and skip nginx.
+# - Adjust Node version if you pin elsewhere.
+# - Ensure .dockerignore excludes node_modules, .next, out, etc., to keep image lean.
