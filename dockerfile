@@ -15,11 +15,8 @@ RUN --mount=type=cache,target=/root/.npm npm ci --prefer-offline
 # Copy the rest of the source
 COPY . .
 
-# Build and export static site to /app/out
-# Ensure package.json has scripts:
-#   "build": "next build"
-#   "export": "next export"
-RUN npm run build && npm run export
+# Build static export (Next.js with output: 'export') to /app/out
+RUN npm run build
 
 
 ########## 2) Runtime stage (NGINX static) ###################################
